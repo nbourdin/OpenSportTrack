@@ -9,7 +9,7 @@ const realClock: Clock = {
   now: () => performance.now(),
   waitUntil: (deadline, signal) =>
     new Promise((resolve, reject) => {
-      if (signal.aborted) return reject(new DOMException('Arrêté', 'AbortError'));
+      if (signal.aborted) return reject(new DOMException('Stopped', 'AbortError'));
       const timer = setTimeout(
         () => {
           signal.removeEventListener('abort', abort);
@@ -19,7 +19,7 @@ const realClock: Clock = {
       );
       function abort() {
         clearTimeout(timer);
-        reject(new DOMException('Arrêté', 'AbortError'));
+        reject(new DOMException('Stopped', 'AbortError'));
       }
       signal.addEventListener('abort', abort, {once: true});
     }),
@@ -36,8 +36,9 @@ export async function sendScheduledSamples(
   // Cumulative deadlines absorb request latency instead of adding it to each interval.
   let nextSendAt = clock.now();
   for (let index = 0; index < samples.length; index++) {
-    if (signal.aborted) throw new DOMException('Arrêté', 'AbortError');
+    if (signal.aborted) throw new DOMException('Stopped', 'AbortError');
     const afterMS = getInterval();
+    // Read the current interval on every point so changes affect the next send.
     const next =
       index + 1 < samples.length
         ? {

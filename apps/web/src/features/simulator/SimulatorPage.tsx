@@ -28,20 +28,19 @@ export function SimulatorPage() {
         <div>
           <strong>OpenSportTrack</strong>
           <span className="separator">/</span>
-          <span>Simulateur GPX</span>
+          <span>GPX simulator</span>
         </div>
       </header>
       <main className="simulator-main">
         <div className="intro">
-          <h1>Rejouer un parcours</h1>
+          <h1>Replay a route</h1>
           <p>
-            Choisis un fichier GPX puis l'intervalle d'envoi. Tu peux changer l'intervalle pendant
-            la simulation.
+            Choose a GPX file and a sending interval. You can change the interval during the replay.
           </p>
         </div>
         <form id="simulator-form" className="controls" onSubmit={submit}>
           <label>
-            Fichier GPX
+            GPX file
             <input
               id="gpx-file"
               type="file"
@@ -52,7 +51,7 @@ export function SimulatorPage() {
             />
           </label>
           <label>
-            Intervalle entre les points
+            Time between points
             <select
               id="send-interval"
               value={interval}
@@ -65,21 +64,21 @@ export function SimulatorPage() {
             </select>
           </label>
           <button id="start" type="submit" disabled={running}>
-            Démarrer
+            Start
           </button>
           <button id="stop" type="button" disabled={!running} onClick={stop}>
-            Arrêter
+            Stop
           </button>
         </form>
         <p className="hint">
-          La cadence est fixe ; les horodatages GPX restent inchangés pour les métriques.
+          The selected interval controls sending; GPX timestamps remain unchanged for metrics.
         </p>
         <div className="run-info">
           <output id="simulator-status">{replayStatus(state)}</output>
           {state.total > 0 && <progress id="progress" max={state.total} value={state.sent} />}
           {state.activityID && (
             <a id="viewer-link" href={viewerPath} target="_blank" rel="noopener">
-              Ouvrir la vue live ↗
+              Open live view ↗
             </a>
           )}
         </div>
@@ -88,7 +87,7 @@ export function SimulatorPage() {
             key={state.activityID}
             id="viewer-frame"
             src={viewerPath}
-            title="Vue live du parcours"
+            title="Live route view"
           />
         )}
       </main>

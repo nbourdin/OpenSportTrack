@@ -17,6 +17,7 @@ export function useReplay() {
   }, []);
 
   function update(next: ReplayState) {
+    // Keep the latest progress available to the async error handler before React rerenders.
     latestState.current = next;
     if (!disposed.current) setState(next);
   }

@@ -2,10 +2,11 @@ import type {Sample} from '../../shared/api/types';
 
 export function parseGPX(source: string): Sample[] {
   const document = new DOMParser().parseFromString(source, 'application/xml');
-  if (document.querySelector('parsererror')) throw new Error('Le fichier GPX est mal formé.');
+  if (document.querySelector('parsererror')) throw new Error('The GPX file is malformed.');
+  // GPX files can use different namespace prefixes for the same track-point element.
   const nodes = document.getElementsByTagNameNS('*', 'trkpt');
-  if (nodes.length === 0) throw new Error('Le GPX ne contient aucun point de trace.');
-  if (nodes.length > 50000) throw new Error('Le GPX dépasse la limite de 50 000 points.');
+  if (nodes.length === 0) throw new Error('The GPX file contains no track points.');
+  if (nodes.length > 50000) throw new Error('The GPX file exceeds the 50,000-point limit.');
   const samples: Sample[] = [];
   let previousTime: number | null = null;
   for (const node of nodes) {
@@ -15,6 +16,7 @@ export function parseGPX(source: string): Sample[] {
     const elevationNode = [...node.children].find(child => child.localName === 'ele');
     const timestamp = Date.parse(timeNode?.textContent?.trim() || '');
     const altitude = elevationNode ? Number(elevationNode.textContent.trim()) : 0;
+    // Check attribute presence because Number(null) would silently become zero.
     if (
       !node.hasAttribute('lat') ||
       !node.hasAttribute('lon') ||
@@ -25,10 +27,10 @@ export function parseGPX(source: string): Sample[] {
       Math.abs(longitude) > 180 ||
       !Number.isFinite(timestamp)
     ) {
-      throw new Error(`Point GPX invalide à la ligne ${samples.length + 1}.`);
+      throw new Error(`Invalid GPX point #${samples.length + 1}.`);
     }
     if (previousTime !== null && timestamp < previousTime) {
-      throw new Error('Les horodatages GPX doivent être dans l’ordre.');
+      throw new Error('GPX timestamps must be in order.');
     }
     samples.push({
       timestamp: new Date(timestamp).toISOString(),

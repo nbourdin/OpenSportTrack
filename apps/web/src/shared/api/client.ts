@@ -1,35 +1,47 @@
-import type {Activity, Position, Sample} from './types';
+import ky from 'ky';
+import {activitySchema} from './schemas';
+import type {Position, Sample} from './types';
 
-async function request<T>(
-  method: string,
-  path: string,
-  body: unknown,
-  signal: AbortSignal,
-): Promise<T> {
-  const response = await fetch(path, {
-    method,
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(body),
-    signal,
-  });
-  if (!response.ok) {
-    const detail = (await response.text()).trim();
-    throw new Error(`${response.status} : ${detail || response.statusText}`);
-  }
-  return response.status === 204 ? (undefined as T) : (response.json() as Promise<T>);
+const http = ky.create({
+  // The simulator owns its send cadence; implicit retries would delay subsequent points.
+  retry: {limit: 0},
+  timeout: false,
+  throwHttpErrors: false,
+});
+
+async function checked(response: Response): Promise<Response> {
+  // Preserve server error details after callers handle expected statuses such as 404.
+  if (response.ok) return response;
+  const detail = (await response.text()).trim();
+  throw new Error(`${response.status}: ${detail || response.statusText}`);
+}
+
+function activityPath(id: string): string {
+  return `/api/v1/activities/${encodeURIComponent(id)}`;
 }
 
 export const api = {
-  createActivity: (signal: AbortSignal) =>
-    request<Activity>('POST', '/api/v1/activities', {sport: 'running'}, signal),
-  setRoute: (id: string, positions: Position[], signal: AbortSignal) =>
-    request<void>('PUT', `/api/v1/activities/${encodeURIComponent(id)}/route`, {positions}, signal),
-  sendSample: (id: string, sample: Sample, signal: AbortSignal) =>
-    request<void>('POST', `/api/v1/activities/${encodeURIComponent(id)}/samples`, sample, signal),
+  async createActivity(signal: AbortSignal) {
+    const response = await checked(
+      await http.post('/api/v1/activities', {json: {sport: 'running'}, signal}),
+    );
+    return activitySchema.parse(await response.json());
+  },
+  async getActivity(id: string, signal: AbortSignal) {
+    const response = await http.get(activityPath(id), {signal});
+    if (response.status === 404) return null;
+    return activitySchema.parse(await (await checked(response)).json());
+  },
+  async setRoute(id: string, positions: Position[], signal: AbortSignal) {
+    await checked(await http.put(`${activityPath(id)}/route`, {json: {positions}, signal}));
+  },
+  async sendSample(id: string, sample: Sample, signal: AbortSignal) {
+    await checked(await http.post(`${activityPath(id)}/samples`, {json: sample, signal}));
+  },
 };
 
 export function liveURL(id: string): string {
-  const url = new URL(`/api/v1/activities/${encodeURIComponent(id)}/live`, location.href);
+  const url = new URL(`${activityPath(id)}/live`, location.href);
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
   return url.toString();
 }

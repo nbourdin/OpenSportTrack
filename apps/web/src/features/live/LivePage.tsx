@@ -4,11 +4,11 @@ import {createLiveMap} from './liveMap';
 import {durationText, emptyMetrics, paceText, type Metrics} from './track';
 
 const phaseText: Record<ConnectionPhase, string> = {
-  connecting: 'Connexion…',
-  live: 'En direct',
-  reconnecting: 'Reconnexion…',
-  not_found: 'Activité introuvable',
-  unavailable: 'Serveur indisponible',
+  connecting: 'Connecting…',
+  live: 'Live',
+  reconnecting: 'Reconnecting…',
+  not_found: 'Activity not found',
+  unavailable: 'Server unavailable',
 };
 
 export function LivePage({id}: {id: string}) {
@@ -37,7 +37,7 @@ export function LivePage({id}: {id: string}) {
           <span className="separator">/</span>
           <span>Live tracking</span>
           <a className="header-link" href="/simulator">
-            Simuler un GPX
+            Simulate a GPX file
           </a>
         </div>
         <output id="status" className={phase === 'live' ? 'connected' : ''}>
@@ -45,11 +45,11 @@ export function LivePage({id}: {id: string}) {
         </output>
       </header>
       <main>
-        <section className="metrics" aria-label="Métriques de l'activité">
+        <section className="metrics" aria-label="Activity metrics">
           <div>
             <span>Distance</span>
             <strong id="distance">
-              {(metrics.distance / 1000).toLocaleString('fr-FR', {
+              {(metrics.distance / 1000).toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}{' '}
@@ -57,26 +57,26 @@ export function LivePage({id}: {id: string}) {
             </strong>
           </div>
           <div>
-            <span>Durée</span>
+            <span>Duration</span>
             <strong id="duration">{durationText(metrics.duration)}</strong>
           </div>
           <div>
-            <span>Vitesse</span>
+            <span>Speed</span>
             <strong id="speed">
               {metrics.speed === null
                 ? '—'
-                : `${metrics.speed.toLocaleString('fr-FR', {maximumFractionDigits: 1})} km/h`}
+                : `${metrics.speed.toLocaleString('en-US', {maximumFractionDigits: 1})} km/h`}
             </strong>
           </div>
           <div>
-            <span>Allure</span>
+            <span>Pace</span>
             <strong id="pace">{paceText(metrics.pace)}</strong>
           </div>
         </section>
-        <section id="map" ref={mapNode} aria-label="Carte du parcours" />
+        <section id="map" ref={mapNode} aria-label="Route map" />
       </main>
       <footer>
-        Activité <code id="activity-id">{id}</code>
+        Activity <code id="activity-id">{id}</code>
       </footer>
     </>
   );

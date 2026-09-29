@@ -41,6 +41,7 @@ func (r *Reader) Next() bool {
 			continue
 		}
 		hasLatitude, hasLongitude := false, false
+		// DecodeElement gives absent numeric attributes zero values, so record presence first.
 		for _, attr := range start.Attr {
 			switch attr.Name.Local {
 			case "lat":

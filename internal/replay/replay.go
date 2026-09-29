@@ -25,6 +25,7 @@ func Replay(ctx context.Context, input io.Reader, speed float64, send func(conte
 	}
 	current := reader.Point()
 	count := 0
+	nextSendAt := time.Now()
 	for {
 		hasNext := reader.Next()
 		if !hasNext && reader.Err() != nil {
@@ -46,6 +47,7 @@ func Replay(ctx context.Context, input io.Reader, speed float64, send func(conte
 		sample := tracking.Sample{Timestamp: current.Time, Position: &tracking.Position{
 			Latitude: current.Latitude, Longitude: current.Longitude, Altitude: current.Altitude,
 		}}
+		// Only advertise intervals the viewer can interpolate with its millisecond hint.
 		if hasNext && delay >= time.Millisecond && delay <= 24*time.Hour {
 			sample.Next = &tracking.NextPoint{Timestamp: next.Time,
 				Position: tracking.Position{Latitude: next.Latitude, Longitude: next.Longitude, Altitude: next.Altitude},
@@ -58,7 +60,14 @@ func Replay(ctx context.Context, input io.Reader, speed float64, send func(conte
 		if !hasNext {
 			return count, nil
 		}
-		timer := time.NewTimer(delay)
+		// Use cumulative deadlines so HTTP latency does not slow every GPX interval.
+		nextSendAt = nextSendAt.Add(delay)
+		remaining := time.Until(nextSendAt)
+		if remaining <= 0 {
+			current = next
+			continue
+		}
+		timer := time.NewTimer(remaining)
 		select {
 		case <-ctx.Done():
 			timer.Stop()

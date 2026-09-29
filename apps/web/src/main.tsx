@@ -9,7 +9,16 @@ function App() {
   if (path === '/' || path === '/simulator') return <SimulatorPage />;
   const match = /^\/live\/([^/]+)$/.exec(path);
   if (match) return <LivePage id={decodeURIComponent(match[1])} />;
-  return <main><h1>Page introuvable</h1><a href="/simulator">Ouvrir le simulateur</a></main>;
+  return (
+    <main>
+      <h1>Page introuvable</h1>
+      <a href="/simulator">Ouvrir le simulateur</a>
+    </main>
+  );
 }
 
-createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);

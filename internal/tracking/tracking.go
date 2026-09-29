@@ -185,6 +185,7 @@ func (m *Manager) Subscribe(id string) (Message, <-chan Message, func(), error) 
 		return Message{}, nil, nil, ErrNotFound
 	}
 	ch := make(chan Message, 64)
+	// Register under the same lock as the snapshot so no sample falls between them.
 	r.subscribers[ch] = struct{}{}
 	snapshot := Message{Version: 1, Type: "snapshot", ActivityID: id, Activity: &r.activity,
 		Samples: append([]Sample{}, r.samples...), Route: append([]Position{}, r.route...)}

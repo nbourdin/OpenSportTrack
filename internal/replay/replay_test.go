@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"opensporttrack/internal/tracking"
 )
@@ -61,5 +62,29 @@ func TestReplayRejectsInvalidSpeed(t *testing.T) {
 	_, err := Replay(context.Background(), strings.NewReader(""), 0, func(context.Context, tracking.Sample) error { return nil })
 	if err == nil {
 		t.Fatal("expected invalid speed error")
+	}
+}
+
+func TestReplaySendTimeDoesNotAddToGPXInterval(t *testing.T) {
+	input := `<gpx><trk><trkseg>
+<trkpt lat="47" lon="-1"><time>2026-09-29T08:00:00Z</time></trkpt>
+<trkpt lat="48" lon="-2"><time>2026-09-29T08:00:00.4Z</time></trkpt>
+</trkseg></trk></gpx>`
+	var firstSend, secondSend time.Time
+	_, err := Replay(context.Background(), strings.NewReader(input), 1, func(_ context.Context, _ tracking.Sample) error {
+		if firstSend.IsZero() {
+			firstSend = time.Now()
+			time.Sleep(200 * time.Millisecond)
+		} else {
+			secondSend = time.Now()
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	interval := secondSend.Sub(firstSend)
+	if interval < 350*time.Millisecond || interval > 520*time.Millisecond {
+		t.Fatalf("send interval = %v, want approximately 400ms", interval)
 	}
 }

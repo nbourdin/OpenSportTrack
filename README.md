@@ -67,8 +67,17 @@ Vite relaie `/api` et le WebSocket vers l'API locale sur `127.0.0.1:8081`. Les d
 
 ```sh
 go test -race ./...
-cd apps/web && npm run build
+cd apps/web
+npm ci
+npm run lint
+npm run format:check
+npm test
+npm run build
 ```
+
+Pour formater Go et le front depuis la racine : `./scripts/format.sh`.
+
+Après `npm ci` dans `apps/web`, activez le contrôle avant chaque push sur ce clone avec `./scripts/install-hooks.sh`. Le hook vérifie les fichiers du commit envoyé avec `gofmt` et Oxfmt ; si le format ne convient pas, appliquez `./scripts/format.sh`, commitez les corrections, puis relancez le push. Les clones suivants doivent activer le hook à leur tour.
 
 ## Docker, si besoin
 

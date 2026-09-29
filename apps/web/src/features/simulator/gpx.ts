@@ -15,15 +15,25 @@ export function parseGPX(source: string): Sample[] {
     const elevationNode = [...node.children].find(child => child.localName === 'ele');
     const timestamp = Date.parse(timeNode?.textContent?.trim() || '');
     const altitude = elevationNode ? Number(elevationNode.textContent.trim()) : 0;
-    if (!node.hasAttribute('lat') || !node.hasAttribute('lon') ||
-        !Number.isFinite(latitude) || !Number.isFinite(longitude) || !Number.isFinite(altitude) ||
-        Math.abs(latitude) > 90 || Math.abs(longitude) > 180 || !Number.isFinite(timestamp)) {
+    if (
+      !node.hasAttribute('lat') ||
+      !node.hasAttribute('lon') ||
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude) ||
+      !Number.isFinite(altitude) ||
+      Math.abs(latitude) > 90 ||
+      Math.abs(longitude) > 180 ||
+      !Number.isFinite(timestamp)
+    ) {
       throw new Error(`Point GPX invalide à la ligne ${samples.length + 1}.`);
     }
     if (previousTime !== null && timestamp < previousTime) {
       throw new Error('Les horodatages GPX doivent être dans l’ordre.');
     }
-    samples.push({timestamp: new Date(timestamp).toISOString(), position: {latitude, longitude, altitude}});
+    samples.push({
+      timestamp: new Date(timestamp).toISOString(),
+      position: {latitude, longitude, altitude},
+    });
     previousTime = timestamp;
   }
   return samples;

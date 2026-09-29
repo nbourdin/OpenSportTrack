@@ -61,7 +61,8 @@ func (r *Reader) Next() bool {
 		}
 		if !hasLatitude || !hasLongitude || raw.Time.IsZero() ||
 			math.Abs(raw.Latitude) > 90 || math.Abs(raw.Longitude) > 180 ||
-			math.IsNaN(raw.Latitude) || math.IsNaN(raw.Longitude) {
+			math.IsNaN(raw.Latitude) || math.IsNaN(raw.Longitude) ||
+			math.IsNaN(raw.Altitude) || math.IsInf(raw.Altitude, 0) {
 			r.err = fmt.Errorf("invalid GPX track point")
 			return false
 		}

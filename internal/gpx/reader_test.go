@@ -28,3 +28,15 @@ func TestReaderRejectsMissingCoordinates(t *testing.T) {
 		t.Fatal("expected error for missing latitude")
 	}
 }
+
+func TestReaderRejectsNonFiniteAltitude(t *testing.T) {
+	for _, altitude := range []string{"NaN", "+Inf", "-Inf"} {
+		t.Run(altitude, func(t *testing.T) {
+			input := `<gpx><trkpt lat="47" lon="-1"><ele>` + altitude + `</ele><time>2026-09-29T08:00:00Z</time></trkpt></gpx>`
+			r := NewReader(strings.NewReader(input))
+			if r.Next() || r.Err() == nil {
+				t.Fatalf("expected error for altitude %q", altitude)
+			}
+		})
+	}
+}

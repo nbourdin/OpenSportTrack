@@ -1,18 +1,95 @@
-.simulator-main { max-width: 1200px; }
-.intro h1 { margin: 18px 0 4px; font-size: clamp(26px, 4vw, 40px); }
-.intro p, .hint { color: #a8b9b6; }
-.intro p { margin: 0 0 24px; }
-.controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 18px; background: #1c272a; border: 1px solid #314044; border-radius: 14px; }
-.controls label { display: grid; gap: 6px; color: #c5d7d1; font-size: 14px; }
-.controls input, .controls select { min-height: 40px; color: #f3f7f5; background: #10171a; border: 1px solid #51645e; border-radius: 7px; padding: 7px 10px; font: inherit; }
-.controls input { max-width: min(450px, 82vw); }
-.controls button { min-height: 40px; padding: 8px 16px; background: #35d797; color: #10201a; border: 0; border-radius: 7px; font: inherit; font-weight: 700; cursor: pointer; }
-.controls button:disabled { opacity: .45; cursor: default; }
-#stop { background: #364844; color: #f3f7f5; }
-.hint { margin: 12px 2px 16px; font-size: 13px; }
-.run-info { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 18px 0; }
-#simulator-status { color: #dce9e1; }
-#progress { width: min(300px, 100%); accent-color: #35d797; }
-#viewer-link { color: #72e2b4; }
-#viewer-frame { width: 100%; height: 840px; border: 1px solid #314044; border-radius: 14px; background: #10171a; }
-@media (max-width: 650px) { #viewer-frame { height: 900px; } }
+.simulator-main {
+  max-width: 1200px;
+}
+.intro h1 {
+  margin: 18px 0 4px;
+  font-size: clamp(26px, 4vw, 40px);
+}
+.intro p,
+.hint {
+  color: #a8b9b6;
+}
+.intro p {
+  margin: 0 0 24px;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding: 18px;
+  background: #1c272a;
+  border: 1px solid #314044;
+  border-radius: 14px;
+}
+.controls label {
+  display: grid;
+  gap: 6px;
+  color: #c5d7d1;
+  font-size: 14px;
+}
+.controls input,
+.controls select {
+  min-height: 40px;
+  color: #f3f7f5;
+  background: #10171a;
+  border: 1px solid #51645e;
+  border-radius: 7px;
+  padding: 7px 10px;
+  font: inherit;
+}
+.controls input {
+  max-width: min(450px, 82vw);
+}
+.controls button {
+  min-height: 40px;
+  padding: 8px 16px;
+  background: #35d797;
+  color: #10201a;
+  border: 0;
+  border-radius: 7px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.controls button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+#stop {
+  background: #364844;
+  color: #f3f7f5;
+}
+.hint {
+  margin: 12px 2px 16px;
+  font-size: 13px;
+}
+.run-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0;
+}
+#simulator-status {
+  color: #dce9e1;
+}
+#progress {
+  width: min(300px, 100%);
+  accent-color: #35d797;
+}
+#viewer-link {
+  color: #72e2b4;
+}
+#viewer-frame {
+  width: 100%;
+  height: 840px;
+  border: 1px solid #314044;
+  border-radius: 14px;
+  background: #10171a;
+}
+@media (max-width: 650px) {
+  #viewer-frame {
+    height: 900px;
+  }
+}

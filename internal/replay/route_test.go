@@ -15,3 +15,13 @@ func TestReadRoute(t *testing.T) {
 		t.Fatalf("route=%v error=%v", positions, err)
 	}
 }
+
+func TestReadRouteRejectsOutOfOrderTimestamps(t *testing.T) {
+	input := `<gpx><trk><trkseg>
+<trkpt lat="47" lon="-1"><time>2026-09-29T08:00:01Z</time></trkpt>
+<trkpt lat="48" lon="-2"><time>2026-09-29T08:00:00Z</time></trkpt>
+</trkseg></trk></gpx>`
+	if _, err := ReadRoute(strings.NewReader(input)); err == nil {
+		t.Fatal("expected invalid timestamp order")
+	}
+}

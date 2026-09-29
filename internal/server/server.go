@@ -141,6 +141,7 @@ func (h *Handler) live(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.CloseNow()
+	// Consume control frames so a write-only stream still notices client disconnects.
 	readCtx := conn.CloseRead(h.ctx)
 	write := func(message tracking.Message) error {
 		ctx, cancel := context.WithTimeout(h.ctx, 10*time.Second)

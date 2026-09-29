@@ -75,6 +75,8 @@ npm test
 npm run build
 ```
 
+GitHub Actions runs the Go and web checks on pull requests and pushes to `main`.
+
 To format Go and the web app from the repository root, run `./scripts/format.sh`.
 
 After running `npm ci` in `apps/web`, enable the pre-push check for this clone with `./scripts/install-hooks.sh`. The hook checks the pushed commit with `gofmt` and Oxfmt. If formatting fails, run `./scripts/format.sh`, commit the changes, and push again. Each new clone must enable the hook separately.

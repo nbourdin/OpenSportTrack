@@ -20,6 +20,7 @@ func TestHTTPAndWebSocketFlow(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	m := tracking.NewManager()
+	defer m.Close()
 	ts := httptest.NewServer(NewHandler(ctx, m, slog.New(slog.DiscardHandler)))
 	defer ts.Close()
 

@@ -95,7 +95,7 @@ docker compose run --rm simulator replay /data/marathon-nantes-2016.gpx --speed 
 
 ## Documentation and current limitations
 
-- [Monorepo architecture](docs/architecture.md)
+- [Architecture and live activity flow](docs/architecture.md)
 - [HTTP and WebSocket v1 contract](contracts/http-ws-v1.md)
 - [Technical design v0](docs/technical-design-v0.md)
 

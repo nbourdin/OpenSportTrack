@@ -8,6 +8,7 @@ import (
 
 func TestSnapshotAndSubsequentSamples(t *testing.T) {
 	m := NewManager()
+	t.Cleanup(m.Close)
 	activity, err := m.Create("running")
 	if err != nil {
 		t.Fatal(err)
@@ -40,6 +41,7 @@ func TestSnapshotAndSubsequentSamples(t *testing.T) {
 
 func TestSlowSubscriberIsDisconnected(t *testing.T) {
 	m := NewManager()
+	t.Cleanup(m.Close)
 	activity, _ := m.Create("running")
 	_, messages, unsubscribe, err := m.Subscribe(activity.ID)
 	if err != nil {
@@ -63,6 +65,7 @@ func TestSlowSubscriberIsDisconnected(t *testing.T) {
 
 func TestRejectsOutOfOrderSample(t *testing.T) {
 	m := NewManager()
+	t.Cleanup(m.Close)
 	activity, _ := m.Create("running")
 	sample := Sample{Timestamp: time.Unix(100, 0), Position: &Position{Latitude: 47}}
 	if err := m.AddSample(activity.ID, sample); err != nil {

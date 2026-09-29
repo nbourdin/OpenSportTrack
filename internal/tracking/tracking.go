@@ -53,26 +53,23 @@ type Message struct {
 	Route      []Position `json:"route,omitempty"`
 }
 
-type runtime struct {
-	activity    Activity
-	samples     []Sample
-	route       []Position
-	subscribers map[chan Message]struct{}
-}
-
-// Manager owns all mutable activity state. A full subscriber buffer disconnects
-// that viewer; ingestion never waits for network I/O.
+// Manager owns the activity registry and coordinates runtime shutdown.
 type Manager struct {
-	mu         sync.Mutex
-	activities map[string]*runtime
+	mu         sync.RWMutex
+	activities map[string]*activityRuntime
 	closed     bool
+	operations sync.WaitGroup
+	closeDone  chan struct{}
 }
 
 func NewManager() *Manager {
-	return &Manager{activities: make(map[string]*runtime)}
+	return &Manager{activities: make(map[string]*activityRuntime), closeDone: make(chan struct{})}
 }
 
 func (m *Manager) Create(sport string) (Activity, error) {
+	if m.isClosed() {
+		return Activity{}, ErrClosed
+	}
 	if sport != "running" {
 		return Activity{}, fmt.Errorf("unsupported sport: %q", sport)
 	}
@@ -86,13 +83,15 @@ func (m *Manager) Create(sport string) (Activity, error) {
 	if m.closed {
 		return Activity{}, ErrClosed
 	}
-	m.activities[a.ID] = &runtime{activity: a, subscribers: make(map[chan Message]struct{})}
+	r := newActivityRuntime(a)
+	m.activities[a.ID] = r
+	go r.run()
 	return a, nil
 }
 
 func (m *Manager) GetActivity(id string) (Activity, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	if m.closed {
 		return Activity{}, ErrClosed
 	}
@@ -104,6 +103,9 @@ func (m *Manager) GetActivity(id string) (Activity, error) {
 }
 
 func (m *Manager) AddSample(id string, sample Sample) error {
+	if m.isClosed() {
+		return ErrClosed
+	}
 	if sample.Timestamp.IsZero() || sample.Position == nil || !validPosition(*sample.Position) {
 		return ErrInvalidSample
 	}
@@ -111,33 +113,18 @@ func (m *Manager) AddSample(id string, sample Sample) error {
 		sample.Next.AfterMS < 1 || sample.Next.AfterMS > 24*60*60*1000) {
 		return ErrInvalidSample
 	}
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if m.closed {
-		return ErrClosed
+	r, err := m.begin(id)
+	if err != nil {
+		return err
 	}
-	r, ok := m.activities[id]
-	if !ok {
-		return ErrNotFound
-	}
-	if n := len(r.samples); n > 0 && sample.Timestamp.Before(r.samples[n-1].Timestamp) {
-		return fmt.Errorf("%w: timestamp precedes last sample", ErrInvalidSample)
-	}
-	r.samples = append(r.samples, sample)
-	msg := Message{Version: 1, Type: "sample", ActivityID: id, Sample: &sample}
-	// A full channel drops its viewer so one slow connection never blocks ingestion.
-	for ch := range r.subscribers {
-		select {
-		case ch <- msg:
-		default:
-			delete(r.subscribers, ch)
-			close(ch)
-		}
-	}
-	return nil
+	defer m.operations.Done()
+	return r.addSample(cloneSample(sample))
 }
 
 func (m *Manager) SetRoute(id string, positions []Position) error {
+	if m.isClosed() {
+		return ErrClosed
+	}
 	if len(positions) == 0 || len(positions) > 50000 {
 		return ErrInvalidRoute
 	}
@@ -146,26 +133,12 @@ func (m *Manager) SetRoute(id string, positions []Position) error {
 			return ErrInvalidRoute
 		}
 	}
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if m.closed {
-		return ErrClosed
+	r, err := m.begin(id)
+	if err != nil {
+		return err
 	}
-	r, ok := m.activities[id]
-	if !ok {
-		return ErrNotFound
-	}
-	r.route = append([]Position(nil), positions...)
-	msg := Message{Version: 1, Type: "route", ActivityID: id, Route: r.route}
-	for ch := range r.subscribers {
-		select {
-		case ch <- msg:
-		default:
-			delete(r.subscribers, ch)
-			close(ch)
-		}
-	}
-	return nil
+	defer m.operations.Done()
+	return r.setRoute(append([]Position(nil), positions...))
 }
 
 func validPosition(position Position) bool {
@@ -174,44 +147,61 @@ func validPosition(position Position) bool {
 		math.Abs(position.Latitude) <= 90 && math.Abs(position.Longitude) <= 180
 }
 
-// Subscribe returns a consistent snapshot and all subsequent samples.
+// Subscribe returns a consistent snapshot followed by subsequent events.
 func (m *Manager) Subscribe(id string) (Message, <-chan Message, func(), error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	r, err := m.begin(id)
+	if err != nil {
+		return Message{}, nil, nil, err
+	}
+	defer m.operations.Done()
+	result := r.subscribe()
+	var once sync.Once
+	cancel := func() { once.Do(func() { r.unsubscribe(result.messages) }) }
+	return result.snapshot, result.messages, cancel, nil
+}
+
+// begin admits an operation before releasing the registry lock, so Close can
+// wait for every accepted command without holding that lock itself.
+func (m *Manager) begin(id string) (*activityRuntime, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	if m.closed {
-		return Message{}, nil, nil, ErrClosed
+		return nil, ErrClosed
 	}
 	r, ok := m.activities[id]
 	if !ok {
-		return Message{}, nil, nil, ErrNotFound
+		return nil, ErrNotFound
 	}
-	ch := make(chan Message, 64)
-	// Register under the same lock as the snapshot so no sample falls between them.
-	r.subscribers[ch] = struct{}{}
-	snapshot := Message{Version: 1, Type: "snapshot", ActivityID: id, Activity: &r.activity,
-		Samples: append([]Sample{}, r.samples...), Route: append([]Position{}, r.route...)}
-	cancel := func() {
-		m.mu.Lock()
-		defer m.mu.Unlock()
-		if _, ok := r.subscribers[ch]; ok {
-			delete(r.subscribers, ch)
-			close(ch)
-		}
-	}
-	return snapshot, ch, cancel, nil
+	m.operations.Add(1)
+	return r, nil
+}
+
+func (m *Manager) isClosed() bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.closed
 }
 
 func (m *Manager) Close() {
 	m.mu.Lock()
-	defer m.mu.Unlock()
 	if m.closed {
+		m.mu.Unlock()
+		<-m.closeDone
 		return
 	}
 	m.closed = true
+	runtimes := make([]*activityRuntime, 0, len(m.activities))
 	for _, r := range m.activities {
-		for ch := range r.subscribers {
-			delete(r.subscribers, ch)
-			close(ch)
-		}
+		runtimes = append(runtimes, r)
 	}
+	m.mu.Unlock()
+
+	m.operations.Wait()
+	for _, r := range runtimes {
+		close(r.stop)
+	}
+	for _, r := range runtimes {
+		<-r.done
+	}
+	close(m.closeDone)
 }

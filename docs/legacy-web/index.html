@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenSportTrack — Live</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="/static/app.css">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script defer src="/static/app.js"></script>
+</head>
+<body>
+  <header>
+    <div><strong>OpenSportTrack</strong><span class="separator">/</span><span>Live tracking</span><a class="header-link" href="/simulator">Simuler un GPX</a></div>
+    <div id="status" role="status">Connexion…</div>
+  </header>
+  <main>
+    <section id="map" aria-label="Carte du parcours"></section>
+    <section class="metrics" aria-label="Métriques de l'activité">
+      <div><span>Distance</span><strong id="distance">0,00 km</strong></div>
+      <div><span>Durée</span><strong id="duration">00:00</strong></div>
+      <div><span>Vitesse</span><strong id="speed">—</strong></div>
+      <div><span>Allure</span><strong id="pace">—</strong></div>
+    </section>
+  </main>
+  <footer>Activité <code id="activity-id"></code></footer>
+</body>
+</html>

@@ -1,0 +1,19 @@
+services:
+  api:
+    build: ./apps/api
+    ports:
+      - "127.0.0.1:8081:8081"
+
+  web:
+    build: ./apps/web
+    depends_on: [api]
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  simulator:
+    build: ./apps/api
+    profiles: [tools]
+    depends_on: [api]
+    volumes:
+      - ./examples:/data:ro
+    entrypoint: ["/ost", "simulator"]

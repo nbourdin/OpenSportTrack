@@ -1,0 +1,23 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body { background: #10171a; color: #f3f7f5; font: 16px/1.45 system-ui, sans-serif; }
+header { min-height: 64px; padding: 16px 24px; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+header strong { color: #72e2b4; letter-spacing: .01em; }
+.header-link { margin-left: 18px; color: #b7d7ca; font-size: 13px; text-decoration: none; }
+.header-link:hover { text-decoration: underline; }
+.separator { color: #56696a; margin: 0 12px; }
+#status { font-size: 14px; color: #e7c476; }
+#status.connected { color: #72e2b4; }
+main { width: min(1200px, 100%); margin: 0 auto; padding: 0 24px 24px; }
+#map { height: min(66vh, 700px); min-height: 360px; border-radius: 16px; overflow: hidden; background: #263638; }
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+.metrics div { padding: 18px 20px; background: #1c272a; border: 1px solid #314044; border-radius: 12px; }
+.metrics span { display: block; color: #a8b9b6; font-size: 14px; }
+.metrics strong { display: block; margin-top: 4px; font-size: clamp(20px, 3vw, 30px); font-variant-numeric: tabular-nums; }
+footer { width: min(1200px, 100%); padding: 0 24px 20px; margin: auto; color: #81938f; font-size: 12px; overflow-wrap: anywhere; }
+.current-position { width: 16px; height: 16px; background: #35d797; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 0 4px #35d79766; }
+.legend-swatch { display: inline-block; width: 22px; margin-right: 7px; vertical-align: middle; border-top: 4px solid; }
+.legend-swatch.planned { border-color: #98bfb0; border-top-style: dashed; }
+.legend-swatch.travelled { border-color: #0fa970; }
+.leaflet-control-layers { border-radius: 9px !important; }
+@media (max-width: 650px) { header { padding: 14px; font-size: 14px; } main { padding: 0 10px 10px; } #map { min-height: 55vh; border-radius: 10px; } .metrics { grid-template-columns: repeat(2, 1fr); } .metrics div { padding: 12px; } footer { padding: 8px 12px; } }

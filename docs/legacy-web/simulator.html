@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenSportTrack — Simulateur GPX</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/static/simulator.css">
+  <script defer src="/static/simulator.js"></script>
+</head>
+<body>
+  <header><div><strong>OpenSportTrack</strong><span class="separator">/</span><span>Simulateur GPX</span></div></header>
+  <main class="simulator-main">
+    <div class="intro">
+      <h1>Rejouer un parcours</h1>
+      <p>Choisis un fichier GPX puis l'intervalle d'envoi. Tu peux changer l'intervalle pendant la simulation.</p>
+    </div>
+    <form id="simulator-form" class="controls">
+      <label>Fichier GPX
+        <input id="gpx-file" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml" required>
+      </label>
+      <label>Intervalle entre les points
+        <select id="send-interval">
+          <option value="250">250 ms</option>
+          <option value="500" selected>500 ms</option>
+          <option value="1000">1 s</option>
+          <option value="2000">2 s</option>
+        </select>
+      </label>
+      <button id="start" type="submit">Démarrer</button>
+      <button id="stop" type="button" disabled>Arrêter</button>
+    </form>
+    <p class="hint">La cadence est fixe ; les horodatages GPX restent inchangés pour les métriques.</p>
+    <div class="run-info">
+      <span id="simulator-status" role="status">Prêt à démarrer.</span>
+      <progress id="progress" max="1" value="0" hidden></progress>
+      <a id="viewer-link" href="#" target="_blank" rel="noopener" hidden>Ouvrir la vue live ↗</a>
+    </div>
+    <iframe id="viewer-frame" title="Vue live du parcours" hidden></iframe>
+  </main>
+</body>
+</html>

@@ -186,25 +186,42 @@ export function LivePage({id}: {id: string}) {
       else { pending.push({sample, duration}); animatePending(); }
     }
 
-    const socket = new WebSocket(liveURL(id));
-    socket.onopen = () => setStatus('En direct');
-    socket.onmessage = event => {
-      const message = JSON.parse(event.data) as LiveMessage;
-      if (message.version !== 1) return;
-      if (message.type === 'snapshot') {
-        setRoute(message.route);
-        for (const sample of message.samples || []) commit(sample);
-        lastArrival = performance.now();
-        if (!routeAvailable && pointCount > 1) map.fitBounds(line.getBounds(), {padding: [30, 30], animate: false});
-        const latest = message.samples?.at(-1);
-        if (latest) predictNext(latest);
-      } else if (message.type === 'route') setRoute(message.route);
-      else if (message.type === 'sample') receive(message.sample);
-    };
-    socket.onclose = () => setStatus('Déconnecté');
-    socket.onerror = () => setStatus('Erreur de connexion');
+    const controller = new AbortController();
+    let socket: WebSocket | null = null;
+    async function connect() {
+      try {
+        // A stale activity ID returns 404 over HTTP, before trying a WebSocket upgrade.
+        const response = await fetch(`/api/v1/activities/${encodeURIComponent(id)}`, {signal: controller.signal});
+        if (!response.ok) {
+          setStatus(response.status === 404 ? 'Activité introuvable' : 'Erreur de connexion');
+          return;
+        }
+        if (controller.signal.aborted) return;
+        socket = new WebSocket(liveURL(id));
+        socket.onopen = () => setStatus('En direct');
+        socket.onmessage = event => {
+          const message = JSON.parse(event.data) as LiveMessage;
+          if (message.version !== 1) return;
+          if (message.type === 'snapshot') {
+            setRoute(message.route);
+            for (const sample of message.samples || []) commit(sample);
+            lastArrival = performance.now();
+            if (!routeAvailable && pointCount > 1) map.fitBounds(line.getBounds(), {padding: [30, 30], animate: false});
+            const latest = message.samples?.at(-1);
+            if (latest) predictNext(latest);
+          } else if (message.type === 'route') setRoute(message.route);
+          else if (message.type === 'sample') receive(message.sample);
+        };
+        socket.onclose = () => { if (!controller.signal.aborted) setStatus('Déconnecté'); };
+        socket.onerror = () => { if (!controller.signal.aborted) setStatus('Erreur de connexion'); };
+      } catch {
+        if (!controller.signal.aborted) setStatus('Serveur indisponible');
+      }
+    }
+    void connect();
     return () => {
-      socket.close();
+      controller.abort();
+      socket?.close();
       if (predictionFrame) cancelAnimationFrame(predictionFrame);
       if (fallbackFrame) cancelAnimationFrame(fallbackFrame);
       map.remove();

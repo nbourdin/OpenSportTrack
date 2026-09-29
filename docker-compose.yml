@@ -1,6 +1,8 @@
 services:
   api:
-    build: ./apps/api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     ports:
       - "127.0.0.1:8081:8081"
 
@@ -11,9 +13,10 @@ services:
       - "127.0.0.1:8080:8080"
 
   simulator:
-    build: ./apps/api
+    build:
+      context: .
+      dockerfile: apps/simulator/Dockerfile
     profiles: [tools]
     depends_on: [api]
     volumes:
       - ./examples:/data:ro
-    entrypoint: ["/ost", "simulator"]

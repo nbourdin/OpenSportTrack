@@ -11,7 +11,7 @@ import (
 
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
-	"opensporttrack/apps/api/internal/tracking"
+	"opensporttrack/internal/tracking"
 )
 
 type Handler struct {
@@ -25,6 +25,7 @@ func NewHandler(ctx context.Context, manager *tracking.Manager, logger *slog.Log
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.HandleFunc("POST /api/v1/activities", h.createActivity)
+	mux.HandleFunc("GET /api/v1/activities/{id}", h.getActivity)
 	mux.HandleFunc("POST /api/v1/activities/{id}/samples", h.addSample)
 	mux.HandleFunc("PUT /api/v1/activities/{id}/route", h.setRoute)
 	mux.HandleFunc("GET /api/v1/activities/{id}/live", h.live)
@@ -65,6 +66,22 @@ func (h *Handler) createActivity(w http.ResponseWriter, r *http.Request) {
 	h.log.Info("activity created", "activity_id", activity.ID)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(activity)
+}
+
+func (h *Handler) getActivity(w http.ResponseWriter, r *http.Request) {
+	activity, err := h.manager.GetActivity(r.PathValue("id"))
+	if err != nil {
+		if errors.Is(err, tracking.ErrNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+		} else if errors.Is(err, tracking.ErrClosed) {
+			http.Error(w, err.Error(), http.StatusServiceUnavailable)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(activity)
 }
 

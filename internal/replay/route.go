@@ -1,11 +1,11 @@
-package simulator
+package replay
 
 import (
 	"fmt"
 	"io"
 
-	"opensporttrack/apps/api/gpx"
-	"opensporttrack/apps/api/internal/tracking"
+	"opensporttrack/internal/gpx"
+	"opensporttrack/internal/tracking"
 )
 
 // ReadRoute extracts the complete baseline trace before timed replay starts.

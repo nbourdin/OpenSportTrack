@@ -6,6 +6,7 @@ Toutes les coordonnées sont en degrés WGS84. Les horodatages sont des chaînes
 | --- | --- | --- | --- |
 | `GET` | `/healthz` | — | `200` |
 | `POST` | `/api/v1/activities` | `{"sport":"running"}` | `201` avec activité |
+| `GET` | `/api/v1/activities/{id}` | — | `200` avec activité, ou `404` |
 | `PUT` | `/api/v1/activities/{id}/route` | `{"positions":[Position, ...]}` | `204` |
 | `POST` | `/api/v1/activities/{id}/samples` | `Sample` | `204` |
 | `GET` | `/api/v1/activities/{id}/live` | Upgrade WebSocket | Flux JSON |

@@ -1,0 +1,8 @@
+.git
+bin
+apps/web
+contracts
+docs
+examples
+docker-compose.yml
+*.md

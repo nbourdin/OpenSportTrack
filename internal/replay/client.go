@@ -1,4 +1,4 @@
-package simulator
+package replay
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"opensporttrack/apps/api/internal/tracking"
+	"opensporttrack/internal/tracking"
 )
 
 type Client struct {

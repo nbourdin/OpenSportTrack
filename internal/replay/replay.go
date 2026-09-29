@@ -1,4 +1,4 @@
-package simulator
+package replay
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"math"
 	"time"
 
-	"opensporttrack/apps/api/gpx"
-	"opensporttrack/apps/api/internal/tracking"
+	"opensporttrack/internal/gpx"
+	"opensporttrack/internal/tracking"
 )
 
 // Replay streams GPX points and preserves the intervals between their timestamps.

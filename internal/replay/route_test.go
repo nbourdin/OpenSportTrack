@@ -1,4 +1,4 @@
-package simulator
+package replay
 
 import (
 	"strings"

@@ -1,4 +1,4 @@
-module opensporttrack/apps/api
+module opensporttrack
 
 go 1.27
 

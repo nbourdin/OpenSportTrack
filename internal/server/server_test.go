@@ -13,7 +13,7 @@ import (
 
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
-	"opensporttrack/apps/api/internal/tracking"
+	"opensporttrack/internal/tracking"
 )
 
 func TestHTTPAndWebSocketFlow(t *testing.T) {
@@ -34,6 +34,22 @@ func TestHTTPAndWebSocketFlow(t *testing.T) {
 	var activity tracking.Activity
 	if err := json.NewDecoder(resp.Body).Decode(&activity); err != nil {
 		t.Fatal(err)
+	}
+	resp, err = http.Get(ts.URL + "/api/v1/activities/" + activity.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("get activity status = %d", resp.StatusCode)
+	}
+	resp, err = http.Get(ts.URL + "/api/v1/activities/missing")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("missing activity status = %d", resp.StatusCode)
 	}
 	wsURL := "ws" + strings.TrimPrefix(ts.URL, "http") + "/api/v1/activities/" + activity.ID + "/live"
 	conn, _, err := websocket.Dial(ctx, wsURL, nil)

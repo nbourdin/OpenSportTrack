@@ -6,13 +6,15 @@ Premier jalon exécutable : création d'une activité de course, ingestion GPS, 
 
 | Dossier | Rôle |
 | --- | --- |
-| `apps/api` | Module Go unique : API HTTP, WebSocket et replay GPX en CLI |
+| `apps/api` | Exécutable Go du serveur HTTP et WebSocket |
+| `apps/simulator` | Exécutable Go du client de replay GPX |
 | `apps/web` | Application React + TypeScript + Vite : carte live et simulateur GPX |
+| `internal` | Packages Go privés partagés par les deux exécutables |
 | `contracts` | Description du protocole HTTP/WebSocket v1 partagé |
 | `examples` | GPX du marathon de Nantes pour les essais |
 | `docs` | Conception et décisions d'architecture |
 
-Le web possède son propre `package.json` et `package-lock.json`. Il n'y a pas de npm workspace tant qu'il n'y a qu'un seul paquet JavaScript. Le backend a un seul `go.mod` ; `go.work` n'est pas nécessaire. Voir [l'architecture](docs/architecture.md) et la [conception technique v0](docs/technical-design-v0.md).
+Le web possède son propre `package.json` et `package-lock.json`. Il n'y a pas de npm workspace tant qu'il n'y a qu'un seul paquet JavaScript. Les deux exécutables Go partagent le `go.mod` de la racine ; `go.work` n'est pas nécessaire. Voir [l'architecture](docs/architecture.md) et la [conception technique v0](docs/technical-design-v0.md).
 
 ## Développement local, sans Docker
 
@@ -21,8 +23,7 @@ Prérequis : Go 1.27, Node.js 24 et npm. Sur macOS, installer Go avec `brew inst
 Terminal 1, l'API :
 
 ```sh
-cd apps/api
-go run ./cmd/ost server
+go run ./apps/api
 ```
 
 Terminal 2, le web :
@@ -37,10 +38,10 @@ Ouvrir [http://localhost:5173/simulator](http://localhost:5173/simulator). Chois
 
 Le parcours GPX complet apparaît en trait clair pointillé, le parcours reçu en vert. Les deux tracés peuvent être masqués ou affichés dans le contrôle en haut à droite de la carte. Les simulateurs annoncent le point suivant pour animer la progression pendant l'intervalle d'envoi ; les positions intermédiaires sont visuelles, pas des mesures GPS. Leaflet et les tuiles OpenStreetMap nécessitent une connexion Internet pour afficher le fond de carte.
 
-Le GPX de Nantes est inclus dans `examples/marathon-nantes-2016.gpx`. Il fonctionne aussi dans le sélecteur de fichier du simulateur web. Pour le rejouer avec la CLI, lancer dans un troisième terminal depuis `apps/api` :
+Le GPX de Nantes est inclus dans `examples/marathon-nantes-2016.gpx`. Il fonctionne aussi dans le sélecteur de fichier du simulateur web. Pour le rejouer avec le client Go, lancer dans un troisième terminal depuis la racine :
 
 ```sh
-go run ./cmd/ost simulator replay ../../examples/marathon-nantes-2016.gpx --speed 300
+go run ./apps/simulator replay examples/marathon-nantes-2016.gpx --speed 300
 ```
 
 La CLI affiche l'URL web de la vue live. `--speed` respecte les intervalles enregistrés dans le GPX, contrairement au simulateur web qui utilise une cadence fixe. Options utiles : `--server http://localhost:8081` et `--web-url http://localhost:5173`.
@@ -48,8 +49,8 @@ La CLI affiche l'URL web de la vue live. `--speed` respecte les intervalles enre
 ## Vérification
 
 ```sh
-cd apps/api && go test -race ./...
-cd ../web && npm run build
+go test -race ./...
+cd apps/web && npm run build
 ```
 
 Docker reste facultatif. Pour construire et démarrer les deux applications :

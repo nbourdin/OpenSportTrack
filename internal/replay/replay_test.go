@@ -1,4 +1,4 @@
-package simulator
+package replay
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"opensporttrack/apps/api/internal/tracking"
+	"opensporttrack/internal/tracking"
 )
 
 func TestReplayPreservesOrder(t *testing.T) {

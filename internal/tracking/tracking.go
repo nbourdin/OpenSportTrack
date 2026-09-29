@@ -90,6 +90,19 @@ func (m *Manager) Create(sport string) (Activity, error) {
 	return a, nil
 }
 
+func (m *Manager) GetActivity(id string) (Activity, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.closed {
+		return Activity{}, ErrClosed
+	}
+	r, ok := m.activities[id]
+	if !ok {
+		return Activity{}, ErrNotFound
+	}
+	return r.activity, nil
+}
+
 func (m *Manager) AddSample(id string, sample Sample) error {
 	if sample.Timestamp.IsZero() || sample.Position == nil || !validPosition(*sample.Position) {
 		return ErrInvalidSample

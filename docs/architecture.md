@@ -33,7 +33,7 @@ The subscription command registers a viewer and copies its snapshot inside the s
 ```mermaid
 sequenceDiagram
     participant Viewer as React viewer
-    participant Handler as WebSocket handler
+    participant Handler as API handlers
     participant Manager as Manager
     participant Runtime as Activity runtime
     Viewer->>Handler: GET /api/v1/activities/{id}/live
@@ -44,7 +44,7 @@ sequenceDiagram
     Handler-->>Viewer: snapshot
     loop Each accepted route or sample
         Handler->>Manager: SetRoute / AddSample
-        Manager->>Runtime: command; wait for result
+        Manager->>Runtime: command and wait for result
         Runtime-->>Manager: accepted or validation error
         Runtime-->>Handler: buffered route / sample event
         Handler-->>Viewer: WebSocket event

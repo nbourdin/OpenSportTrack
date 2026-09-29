@@ -15,19 +15,19 @@ export const initialReplayState: ReplayState = {phase: 'idle', sent: 0, total: 0
 export function replayStatus(state: ReplayState): string {
   switch (state.phase) {
     case 'idle':
-      return 'Prêt à démarrer.';
+      return 'Ready to start.';
     case 'reading':
-      return 'Lecture du GPX…';
+      return 'Reading GPX…';
     case 'creating':
-      return `Création de l’activité (${state.total} points)…`;
+      return `Creating activity (${state.total} points)…`;
     case 'running':
-      return `Points envoyés : ${state.sent} / ${state.total}`;
+      return `Points sent: ${state.sent} / ${state.total}`;
     case 'done':
-      return `Replay terminé : ${state.sent} points envoyés.`;
+      return `Replay complete: ${state.sent} points sent.`;
     case 'stopped':
-      return 'Replay arrêté.';
+      return 'Replay stopped.';
     case 'error':
-      return `Erreur : ${state.error}`;
+      return `Error: ${state.error}`;
   }
 }
 
@@ -39,7 +39,7 @@ export async function replayGPX(
 ): Promise<void> {
   onUpdate({...initialReplayState, phase: 'reading'});
   const samples = parseGPX(await file.text());
-  if (signal.aborted) throw new DOMException('Arrêté', 'AbortError');
+  if (signal.aborted) throw new DOMException('Stopped', 'AbortError');
   onUpdate({phase: 'creating', sent: 0, total: samples.length, activityID: null});
   const activity = await api.createActivity(signal);
   await api.setRoute(

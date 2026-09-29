@@ -40,6 +40,7 @@ func decodeJSON(w http.ResponseWriter, r *http.Request, dst any, limit int64) bo
 		http.Error(w, "invalid JSON: "+err.Error(), http.StatusBadRequest)
 		return false
 	}
+	// A second decode must reach EOF to reject trailing JSON values.
 	if err := decoder.Decode(new(any)); err != io.EOF {
 		http.Error(w, "expected a single JSON object", http.StatusBadRequest)
 		return false

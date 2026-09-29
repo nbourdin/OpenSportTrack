@@ -9,6 +9,7 @@ export function createLiveMap(node: HTMLDivElement, onMetrics: (metrics: Metrics
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap contributors',
   }).addTo(map);
+  // The dark outline keeps the pale baseline visible under the green live track.
   const plannedOutline = L.polyline([], {color: '#526b61', weight: 8, opacity: 0.65});
   const plannedLine = L.polyline([], {color: '#e4f4eb', weight: 5, opacity: 1, dashArray: '9 8'});
   const plannedRoute = L.layerGroup([plannedOutline, plannedLine]).addTo(map);
@@ -19,8 +20,8 @@ export function createLiveMap(node: HTMLDivElement, onMetrics: (metrics: Metrics
     .layers(
       undefined,
       {
-        '<span class="legend-swatch planned"></span>Parcours initial': plannedRoute,
-        '<span class="legend-swatch travelled"></span>Tracé parcouru': travelledRoute,
+        '<span class="legend-swatch planned"></span>Original route': plannedRoute,
+        '<span class="legend-swatch travelled"></span>Recorded track': travelledRoute,
       },
       {collapsed: false, position: 'topright'},
     )
@@ -97,6 +98,7 @@ export function createLiveMap(node: HTMLDivElement, onMetrics: (metrics: Metrics
 
   function predictNext(sample: Sample) {
     if (!sample.next || reducedMotion) return;
+    // The hint drives visual interpolation; only received samples extend the recorded track.
     const from = sample.position;
     const to = sample.next.position;
     const fromTime = Date.parse(sample.timestamp);
@@ -131,6 +133,7 @@ export function createLiveMap(node: HTMLDivElement, onMetrics: (metrics: Metrics
       commit(pending.shift()!.sample);
     }
     if (!pending.length) return;
+    // Without a next-point hint, animate the oldest received point over its arrival interval.
     const {sample, duration} = pending.shift()!;
     const from = lastPosition!;
     const to = sample.position;
@@ -163,6 +166,7 @@ export function createLiveMap(node: HTMLDivElement, onMetrics: (metrics: Metrics
 
   function receive(sample: Sample) {
     if (!sample?.position) return;
+    // A deterministic hint supersedes the arrival-based animation queue.
     if (predicting || sample.next) {
       stopAnimations();
       while (pending.length) commit(pending.shift()!.sample);
@@ -182,6 +186,7 @@ export function createLiveMap(node: HTMLDivElement, onMetrics: (metrics: Metrics
   }
 
   function snapshot(samples: Sample[], route: Position[] = []) {
+    // Rebuild from server state after reconnect so replayed points are not counted twice.
     stopAnimations();
     pending.length = 0;
     firstTime = lastTime = lastArrival = null;

@@ -16,9 +16,9 @@ while read -r local_ref local_oid remote_ref remote_oid; do
   tar -xf "$snapshot/source.tar" -C "$snapshot"
   rm "$snapshot/source.tar"
 
-  printf 'Vérification du format de %s…\n' "$local_ref"
+  printf 'Checking formatting for %s…\n' "$local_ref"
   if ! "$repo/scripts/check-format.sh" "$snapshot"; then
-    echo 'Push annulé : formatez, puis commitez les corrections avant de réessayer.' >&2
+    echo 'Push canceled: format and commit the changes before trying again.' >&2
     exit 1
   fi
 

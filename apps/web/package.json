@@ -6,16 +6,18 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "test": "node --experimental-strip-types --test src/features/**/*.test.mjs",
+    "test": "node --experimental-strip-types --test src/features/**/*.test.mjs src/shared/api/*.test.mjs",
     "lint": "oxlint . --deny-warnings",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "ky": "^2.1.0",
     "leaflet": "^1.9.4",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.22",

@@ -11,8 +11,8 @@ function App() {
   if (match) return <LivePage id={decodeURIComponent(match[1])} />;
   return (
     <main>
-      <h1>Page introuvable</h1>
-      <a href="/simulator">Ouvrir le simulateur</a>
+      <h1>Page not found</h1>
+      <a href="/simulator">Open simulator</a>
     </main>
   );
 }

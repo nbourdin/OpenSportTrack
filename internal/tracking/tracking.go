@@ -125,6 +125,7 @@ func (m *Manager) AddSample(id string, sample Sample) error {
 	}
 	r.samples = append(r.samples, sample)
 	msg := Message{Version: 1, Type: "sample", ActivityID: id, Sample: &sample}
+	// A full channel drops its viewer so one slow connection never blocks ingestion.
 	for ch := range r.subscribers {
 		select {
 		case ch <- msg:

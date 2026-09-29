@@ -1,27 +1,14 @@
-export interface Position {
-  latitude: number;
-  longitude: number;
-  altitude?: number;
-}
+import type {z} from 'zod';
+import type {
+  activitySchema,
+  liveMessageSchema,
+  nextPointSchema,
+  positionSchema,
+  sampleSchema,
+} from './schemas';
 
-export interface NextPoint {
-  timestamp: string;
-  position: Position;
-  after_ms: number;
-}
-
-export interface Sample {
-  timestamp: string;
-  position: Position;
-  next?: NextPoint;
-}
-
-export interface Activity {
-  id: string;
-  sport: string;
-}
-
-export type LiveMessage =
-  | {version: 1; type: 'snapshot'; activity_id: string; route?: Position[]; samples?: Sample[]}
-  | {version: 1; type: 'route'; activity_id: string; route: Position[]}
-  | {version: 1; type: 'sample'; activity_id: string; sample: Sample};
+export type Position = z.infer<typeof positionSchema>;
+export type NextPoint = z.infer<typeof nextPointSchema>;
+export type Sample = z.infer<typeof sampleSchema>;
+export type Activity = z.infer<typeof activitySchema>;
+export type LiveMessage = z.infer<typeof liveMessageSchema>;

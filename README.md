@@ -1,33 +1,33 @@
 # OpenSportTrack
 
-**Rejouez un parcours GPX comme s'il venait d'une montre, puis suivez la course en direct sur une carte.**
+**Replay a GPX route as if it came from a watch, then follow the run live on a map.**
 
-Go 1.27 · React 19 · Vite 8 · WebSocket · Leaflet
+Go 1.27 · React 19 · Vite 8 · Ky · Zod · WebSocket · Leaflet
 
 <p align="center">
   <a href="docs/images/live-nantes.png">
-    <img src="docs/images/live-nantes.png" alt="Vue live du marathon de Nantes avec métriques, parcours prévu et tracé parcouru" width="760">
+    <img src="docs/images/live-nantes.png" alt="Live view of the Nantes Marathon with metrics, original route, and recorded track" width="760">
   </a>
 </p>
-<p align="center"><sub>Marathon de Nantes, après environ 22 km de replay. Cliquez pour agrandir.</sub></p>
+<p align="center"><sub>Nantes Marathon after about 22 km of replay. Click to enlarge.</sub></p>
 
-## En bref
+## At a glance
 
-- **Deux tracés sur la carte** : le parcours GPX complet en clair et la progression reçue en vert, chacun avec son interrupteur.
-- **Un suivi fluide** : la position et les métriques avancent entre deux points envoyés. Cette interpolation reste visuelle ; elle ne crée pas de mesure GPS.
-- **Deux façons de simuler** : un client Go qui respecte les horodatages du GPX, ou un simulateur web à intervalle réglable (250 ms à 2 s).
+- **Two tracks on the map:** the full GPX route in a light color and the received progress in green, each with its own toggle.
+- **Smooth tracking:** the position and metrics advance between received points. This interpolation is visual only; it does not create GPS measurements.
+- **Two ways to simulate:** a Go client that follows GPX timestamps, or a web simulator with an adjustable interval (250 ms to 2 s).
 
-## Démarrer en local
+## Run locally
 
-Prérequis : **Go 1.27**, **Node.js 24** et npm. Docker n'est pas nécessaire pour développer.
+Requirements: **Go 1.27**, **Node.js 24**, and npm. Docker is not required for development.
 
-**Terminal 1 — API**, depuis la racine du dépôt :
+**Terminal 1 — API**, from the repository root:
 
 ```sh
 go run ./apps/api
 ```
 
-**Terminal 2 — interface web**, depuis la racine du dépôt :
+**Terminal 2 — web app**, from the repository root:
 
 ```sh
 cd apps/web
@@ -35,35 +35,35 @@ npm ci
 npm run dev
 ```
 
-Ouvrez **[le simulateur web](http://localhost:5173/simulator)**, choisissez `examples/marathon-nantes-2016.gpx`, puis démarrez le replay. La carte live s'affiche dans la page et peut aussi être ouverte dans un onglet séparé.
+Open the **[web simulator](http://localhost:5173/simulator)**, select `examples/marathon-nantes-2016.gpx`, and start the replay. The live map appears on the page and can also be opened in a separate tab.
 
-### Rejouer Nantes avec le client Go
+### Replay Nantes with the Go client
 
-Dans un troisième terminal, depuis la racine du dépôt :
+In a third terminal, from the repository root:
 
 ```sh
 go run ./apps/simulator replay examples/marathon-nantes-2016.gpx --speed 300
 ```
 
-La commande affiche une URL `/live/{activity_id}` à ouvrir dans le navigateur. `--speed 300` compresse le temps enregistré dans le GPX ; le simulateur web utilise, lui, une cadence fixe que vous pouvez modifier pendant la course. Le client Go accepte aussi `--server` et `--web-url` si vous changez les ports.
+The command prints a `/live/{activity_id}` URL to open in a browser. `--speed 300` compresses the time recorded in the GPX file; the web simulator uses a fixed sending interval that you can change during the run. The Go client also accepts `--server` and `--web-url` if you change the ports.
 
-## Comment ça fonctionne
+## How it works
 
 ```text
-GPX → simulateur Go ou web → API Go → WebSocket → carte React
+GPX → Go or web simulator → Go API → WebSocket → React map
 ```
 
-| Emplacement | Responsabilité |
+| Location | Responsibility |
 | --- | --- |
-| [`apps/api`](apps/api) | Serveur HTTP, ingestion GPS et diffusion WebSocket |
-| [`apps/simulator`](apps/simulator) | Client Go de replay GPX |
-| [`apps/web`](apps/web) | Carte live et simulateur React + Vite |
-| [`internal`](internal) | Packages Go partagés, privés au module |
-| [`contracts`](contracts/http-ws-v1.md) | Contrat HTTP et WebSocket v1 |
+| [`apps/api`](apps/api) | HTTP server, GPS ingestion, and WebSocket broadcast |
+| [`apps/simulator`](apps/simulator) | GPX replay client written in Go |
+| [`apps/web`](apps/web) | Live map and simulator built with React and Vite |
+| [`internal`](internal) | Shared Go packages private to the module |
+| [`contracts`](contracts/http-ws-v1.md) | HTTP and WebSocket v1 contract |
 
-Vite relaie `/api` et le WebSocket vers l'API locale sur `127.0.0.1:8081`. Les deux exécutables Go partagent un seul `go.mod` à la racine ; le web possède son propre `package.json`. Les tuiles OpenStreetMap demandent une connexion Internet dans le navigateur.
+Vite proxies `/api` and WebSocket traffic to the local API at `127.0.0.1:8081`. The two Go programs share a single root `go.mod`; the web app has its own `package.json`. OpenStreetMap tiles require an internet connection in the browser.
 
-## Vérifier le projet
+## Check the project
 
 ```sh
 go test -race ./...
@@ -75,26 +75,26 @@ npm test
 npm run build
 ```
 
-Pour formater Go et le front depuis la racine : `./scripts/format.sh`.
+To format Go and the web app from the repository root, run `./scripts/format.sh`.
 
-Après `npm ci` dans `apps/web`, activez le contrôle avant chaque push sur ce clone avec `./scripts/install-hooks.sh`. Le hook vérifie les fichiers du commit envoyé avec `gofmt` et Oxfmt ; si le format ne convient pas, appliquez `./scripts/format.sh`, commitez les corrections, puis relancez le push. Les clones suivants doivent activer le hook à leur tour.
+After running `npm ci` in `apps/web`, enable the pre-push check for this clone with `./scripts/install-hooks.sh`. The hook checks the pushed commit with `gofmt` and Oxfmt. If formatting fails, run `./scripts/format.sh`, commit the changes, and push again. Each new clone must enable the hook separately.
 
-## Docker, si besoin
+## Docker, if needed
 
 ```sh
 docker compose up --build
 ```
 
-Le web est alors disponible sur [localhost:8080/simulator](http://localhost:8080/simulator) et l'API sur `localhost:8081`. Pour rejouer le GPX dans Compose :
+The web app is then available at [localhost:8080/simulator](http://localhost:8080/simulator) and the API at `localhost:8081`. To replay the GPX file in Compose:
 
 ```sh
 docker compose run --rm simulator replay /data/marathon-nantes-2016.gpx --speed 300 --server http://api:8081 --web-url http://localhost:8080
 ```
 
-## Documentation et limites actuelles
+## Documentation and current limitations
 
-- [Architecture du monorepo](docs/architecture.md)
-- [Contrat HTTP et WebSocket v1](contracts/http-ws-v1.md)
-- [Conception technique v0](docs/technical-design-v0.md)
+- [Monorepo architecture](docs/architecture.md)
+- [HTTP and WebSocket v1 contract](contracts/http-ws-v1.md)
+- [Technical design v0](docs/technical-design-v0.md)
 
-Cette première version accepte uniquement la course à pied. L'état est en mémoire : les activités disparaissent au redémarrage de l'API. Il n'y a pas encore d'authentification, de persistance ni d'envoi GPS par lots.
+This first version supports running only. State is kept in memory, so activities disappear when the API restarts. Authentication, persistence, and batch GPS uploads are not yet available.

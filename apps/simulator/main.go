@@ -26,13 +26,13 @@ func main() {
 
 func run(ctx context.Context, args []string) error {
 	if len(args) < 2 || args[0] != "replay" {
-		return fmt.Errorf("usage: ost-simulator replay FILE [--speed 300] [--server http://localhost:8081] [--web-url http://localhost:5173]")
+		return fmt.Errorf("usage: ost-simulator replay FILE [--speed 300] [--server http://127.0.0.1:8081] [--web-url http://127.0.0.1:5173]")
 	}
 	file := args[1]
 	flags := flag.NewFlagSet("replay", flag.ContinueOnError)
 	speed := flags.Float64("speed", 1, "replay speed multiplier")
-	serverURL := flags.String("server", "http://localhost:8081", "tracking server URL")
-	webURL := flags.String("web-url", "http://localhost:5173", "viewer URL")
+	serverURL := flags.String("server", "http://127.0.0.1:8081", "tracking server URL")
+	webURL := flags.String("web-url", "http://127.0.0.1:5173", "viewer URL")
 	if err := flags.Parse(args[2:]); err != nil {
 		return err
 	}
